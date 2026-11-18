@@ -34,6 +34,14 @@
       var s = document.getElementById('splash'); if (s) s.remove();
     });
   </script>
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Older iPhones (iOS 12-15.5, e.g. iPhone 6) cannot run the full app: send them to the Lite page.
+    (function () {
+      var modern = typeof window.structuredClone === 'function' && typeof window.WeakRef === 'function';
+      if (!modern || /[?&]lite\b/.test(location.search)) { location.replace('lite/'); return; }
+      var s = document.createElement('script'); s.src = 'flutter_bootstrap.js'; s.async = true;
+      document.body.appendChild(s);
+    })();
+  </script>
 </body>
 </html>

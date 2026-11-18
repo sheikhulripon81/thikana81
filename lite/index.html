@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Thikana 81">
+<meta name="theme-color" content="#F6F1E4">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="../favicon.png">
+<title>Thikana 81</title>
+<!-- Thikana 81 "Lite": plain HTML + JavaScript for older iPhones (iOS 12, e.g. iPhone 6).
+     Same Supabase data, same sign-in and same rules as the full app. No Flutter. -->
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: #F6F1E4; color: #1E2A32;
+    font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 15px; }
+  a { color: #385C42; }
+  button { font: inherit; }
+  #top { position: fixed; left: 0; right: 0; top: 0; z-index: 10; background: #F6F1E4; border-bottom: 1px solid #D8CDAE;
+    padding: 8px 12px; padding-top: calc(8px + env(safe-area-inset-top)); display: flex; align-items: center; min-height: 48px; }
+  #top img { height: 24px; margin-right: 7px; }
+  #top .brand { font-weight: 700; font-size: 18px; white-space: nowrap; }
+  #top .mid { flex: 1; text-align: center; }
+  #top .page { font-weight: 700; font-size: 15px; text-align: right; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #top .back { border: 0; background: none; font-size: 22px; padding: 0 8px 0 0; color: #385C42; }
+  #main { padding: 64px 10px 80px; padding-top: calc(64px + env(safe-area-inset-top)); padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+  #nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: #FBF8EF; border-top: 1px solid #D8CDAE;
+    display: flex; padding-bottom: env(safe-area-inset-bottom); }
+  #nav button { flex: 1; border: 0; background: none; padding: 7px 0 6px; font-size: 12px; color: #1E2A32; }
+  #nav button span { display: block; font-size: 20px; }
+  #nav button.on { color: #385C42; font-weight: 700; }
+  #nav button.on span { background: #DEE8DD; border-radius: 14px; margin: 0 22%; }
+  .card { background: #FBF8EF; border-radius: 12px; padding: 10px 12px; margin: 6px 0; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .card.total { background: #F1E6C9; }
+  .card.pinned { border: 1.5px solid #A9812E; }
+  .sec { display: flex; align-items: center; margin: 16px 2px 6px; font-weight: 700; font-size: 16px; }
+  .sec .line { flex: 1; height: 1px; background: #D8CDAE; margin-left: 8px; }
+  .sec button { margin-left: 6px; }
+  .grid { display: flex; flex-wrap: wrap; margin: 0 -4px; }
+  .grid .card { width: calc(50% - 8px); margin: 4px; }
+  .k { font-size: 12px; color: #555; }
+  .v { font-size: 17px; font-weight: 700; margin-top: 2px; }
+  .row { display: flex; justify-content: space-between; }
+  .cols { display: flex; margin-top: 6px; }
+  .cols > div { flex: 1; }
+  .cols > div + div { margin-left: 16px; }
+  .b { font-weight: 700; }
+  .green { color: #2E7D32; } .red { color: #9C4331; }
+  .pill { font-size: 12px; padding: 2px 8px; border-radius: 12px; background: #F3D9D3; white-space: nowrap; }
+  .pill.ok { background: #D7EED8; }
+  .bar { height: 6px; background: #E6DFCB; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .bar div { height: 100%; background: #385C42; }
+  .small { font-size: 12px; color: #6b665a; }
+  .center { text-align: center; }
+  .btn { border: 0; border-radius: 20px; padding: 9px 16px; background: #385C42; color: #fff; font-weight: 600; }
+  .btn.light { background: #DEE8DD; color: #385C42; }
+  .btn.maroon { background: #800000; padding: 6px 14px; }
+  .btn:disabled { opacity: .5; }
+  .link { border: 0; background: none; color: #385C42; padding: 6px; text-decoration: underline; }
+  .icon { border: 0; background: none; font-size: 20px; padding: 2px 6px; }
+  input[type=text], input[type=password], textarea { width: 100%; font: inherit; font-size: 16px; padding: 10px;
+    border: 1px solid #D8CDAE; border-radius: 10px; background: #fff; -webkit-appearance: none; }
+  textarea { resize: none; }
+  label.f { display: block; margin: 8px 0; }
+  .err { color: #9C4331; margin: 6px 0; }
+  .ok { color: #2E7D32; margin: 6px 0; }
+  .list > div { padding: 10px 4px; border-bottom: 1px solid #E6DFCB; }
+  .who { display: flex; align-items: center; }
+  .av { width: 30px; height: 30px; border-radius: 15px; background: #DEE8DD; display: inline-block; flex: none;
+    background-size: cover; background-position: center; text-align: center; line-height: 30px; font-weight: 700; color: #385C42; }
+  .who .nm { margin-left: 8px; flex: 1; min-width: 0; }
+  .who .nm .b { display: block; }
+  .msg { margin: 4px 0 0; white-space: pre-wrap; word-wrap: break-word; }
+  .pic { display: block; max-width: 100%; max-height: 260px; border-radius: 8px; margin-top: 6px; }
+  .reacts { margin-top: 4px; }
+  .re { border: 1px solid #D8CDAE; background: none; border-radius: 14px; padding: 1px 7px; margin: 3px 4px 0 0; font-size: 15px; }
+  .re.mine { background: #DEE8DD; border-color: #385C42; }
+  .cmt { margin-left: 14px; padding: 4px 0; }
+  .cmt .msg, .cmt .pic, .cmt .reacts { margin-left: 38px; }
+  .hr { height: 1px; background: #E6DFCB; margin: 6px 0; }
+  .wait { font-size: 11px; color: #A9812E; }
+  .composer { background: #FBF8EF; border-radius: 12px; padding: 8px; margin: 6px 0; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .composer .acts { display: flex; align-items: center; margin-top: 6px; }
+  .composer .acts .fn { flex: 1; font-size: 12px; color: #6b665a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 6px; }
+  .attach { position: relative; overflow: hidden; display: inline-block; }
+  .attach input { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; }
+  details summary { list-style: none; outline: none; }
+  details summary::-webkit-details-marker { display: none; }
+  .friend { display: flex; align-items: center; }
+  .friend .nm { flex: 1; margin-left: 10px; min-width: 0; }
+  .friend .av { width: 40px; height: 40px; border-radius: 20px; line-height: 40px; }
+  .opts a { display: inline-block; margin: 8px 6px 0 0; padding: 6px 12px; border-radius: 16px; background: #DEE8DD; text-decoration: none; }
+  .spin { padding: 40px; text-align: center; color: #6b665a; }
+  .hero { width: 100%; max-height: 170px; object-fit: cover; border-radius: 12px; display: block; }
+</style>
+</head>
+<body>
+<div id="top"></div>
+<div id="main"><div class="spin">Loading…</div></div>
+<div id="nav" style="display:none"></div>
+
+<script>
+// ===================================================================== settings
+var SB = 'https://zyxvbbjllmxkgzieuftf.supabase.co';
+var KEY = 'sb_publishable__zdHPvEhPYtZWA6NM-8NOQ_v28OPzWV';   // public key only
+var BUCKET = 'thikana-files';
+var ADMIN_NAME = 'Sheikhul';
+var ADMIN_PHOTO_MEMBER = 'Ripon';
+var QUICK = ['👍', '❤️', '😂', '😮', '🙏'];
+var EXTRA = ['😢', '😡', '🎉', '🔥', '👏', '💯', '😍', '🤔', '🙌', '😴', '🤝'];
+var SKEY = 'tk_lite_session';
+
+// ===================================================================== small helpers
+function $(id) { return document.getElementById(id); }
+function esc(v) {
+  return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function num(v) { var x = parseFloat(v); return isNaN(x) ? 0 : x; }
+var NF = (window.Intl && Intl.NumberFormat) ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }) : null;
+function tk(v) { var x = num(v); return '৳ ' + (NF ? NF.format(x) : x.toFixed(2)); }
+function tkSigned(v) { return v < 0 ? '−' + tk(-v) : tk(v); }
+var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function pdate(v) {
+  if (!v) return null;
+  var s = String(v).replace(' ', 'T').replace(/(\.\d{3})\d+/, '$1').replace(/([+-]\d\d)$/, '$1:00');
+  if (/^\d{4}-\d\d-\d\d$/.test(s)) s += 'T00:00:00';
+  var d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fdate(v, withTime) {
+  var d = pdate(v); if (!d) return '';
+  var out = d.getDate() + ' ' + MON[d.getMonth()] + ' ' + d.getFullYear();
+  if (withTime) {
+    var h = d.getHours(), m = d.getMinutes();
+    out += ', ' + ((h % 12) || 12) + ':' + (m < 10 ? '0' : '') + m + ' ' + (h < 12 ? 'AM' : 'PM');
+  }
+  return out;
+}
+function ms(v) { var d = pdate(v); return d ? d.getTime() : 0; }
+function initials(n) { n = String(n || '?').trim(); return esc(n.charAt(0).toUpperCase()); }
+function toast(msg) { alert(msg); }
+
+// ===================================================================== session + HTTP
+var S = null;
+try { S = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { S = null; }
+function saveSession() { try { if (S) localStorage.setItem(SKEY, JSON.stringify(S)); else localStorage.removeItem(SKEY); } catch (e) {} }
+function setSession(j) {
+  S = { access_token: j.access_token, refresh_token: j.refresh_token,
+        expires_at: j.expires_at || (Math.floor(Date.now() / 1000) + (j.expires_in || 3600)), user: j.user };
+  saveSession();
+}
+function meta() { return (S && S.user && S.user.app_metadata) || {}; }
+function isAdmin() { return meta().role === 'admin'; }
+function myId() { var x = parseInt(meta().member_id, 10); return isNaN(x) ? null : x; }
+
+async function http(method, path, body, headers) {
+  var h = { apikey: KEY };
+  var isBlob = body && typeof Blob !== 'undefined' && body instanceof Blob;
+  if (body != null && !isBlob) h['Content-Type'] = 'application/json';
+  for (var k in (headers || {})) h[k] = headers[k];
+  var r = await fetch(SB + path, { method: method, headers: h,
+    body: body == null ? undefined : (isBlob ? body : JSON.stringify(body)) });
+  var t = await r.text(), j = null;
+  try { j = t ? JSON.parse(t) : null; } catch (e) { j = null; }
+  if (!r.ok) {
+    var e2 = new Error((j && (j.message || j.error_description || j.msg || j.error)) || t || ('Error ' + r.status));
+    e2.status = r.status; throw e2;
+  }
+  return j;
+}
+async function refresh() {
+  try { setSession(await http('POST', '/auth/v1/token?grant_type=refresh_token', { refresh_token: S.refresh_token })); }
+  catch (e) { signOut(); throw new Error('Please sign in again.'); }
+}
+async function api(method, path, body, extra) {
+  if (!S) { signOut(); throw new Error('Please sign in.'); }
+  if (Date.now() / 1000 > S.expires_at - 60) await refresh();
+  var h = { Authorization: 'Bearer ' + S.access_token };
+  for (var k in (extra || {})) h[k] = extra[k];
+  try { return await http(method, path, body, h); }
+  catch (e) {
+    if (e.status !== 401) throw e;
+    await refresh(); h.Authorization = 'Bearer ' + S.access_token;
+    return http(method, path, body, h);
+  }
+}
+function get(table, query) { return api('GET', '/rest/v1/' + table + '?' + query); }
+function insert(table, row) { return api('POST', '/rest/v1/' + table, row, { Prefer: 'return=minimal' }); }
+async function callAuth(body) {
+  var r = await fetch(SB + '/functions/v1/desktop-auth', { method: 'POST',
+    headers: { apikey: KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  var j = null; try { j = await r.json(); } catch (e) {}
+  return j || { ok: false, error: 'Could not reach the server (' + r.status + '). Check your internet.' };
+}
+
+// signed links to stored files (photos, chat media, receipts)
+var URLS = {};
+async function signMany(folder, names) {
+  var need = [], seen = {};
+  names.forEach(function (n) { if (n && !URLS[folder + '/' + n] && !seen[n]) { seen[n] = 1; need.push(folder + '/' + n); } });
+  for (var i = 0; i < need.length; i += 50) {
+    try {
+      var r = await api('POST', '/storage/v1/object/sign/' + BUCKET, { expiresIn: 3600, paths: need.slice(i, i + 50) });
+      (r || []).forEach(function (x) {
+        var u = x.signedURL || x.signedUrl;
+        if (u && x.path) URLS[x.path] = /^https?:/.test(u) ? u : SB + '/storage/v1' + u;
+      });
+    } catch (e) { /* missing files just show without a picture */ }
+  }
+}
+function fileUrl(folder, name) { return name ? URLS[folder + '/' + name] : null; }
+async function openFile(folder, name) {
+  await signMany(folder, [name]);
+  var u = fileUrl(folder, name);
+  if (u) window.open(u, '_blank'); else toast('File not available yet. It appears after the next PC sync.');
+}
+
+// ===================================================================== app shell
+var STATE = { tab: 'home', view: 'home', arg: null, members: null };
+function header(page, opts) {
+  opts = opts || {};
+  var html = '';
+  if (opts.back) html += '<button class="back" onclick="goBack()">‹</button>';
+  html += '<img src="../icons/Icon-192.png" alt=""><span class="brand">Thikana 81</span>';
+  html += '<div class="mid">' + (opts.middle || '') + '</div>';
+  html += '<div class="page"' + (opts.color ? ' style="color:' + opts.color + '"' : '') + '>' + esc(page) + '</div>';
+  $('top').innerHTML = html;
+}
+function nav() {
+  var tabs = [['home', '🏠', 'Home'], ['chat', '💬', 'Chat'], ['more', '☰', 'More']];
+  $('nav').style.display = S ? 'flex' : 'none';
+  $('nav').innerHTML = tabs.map(function (t) {
+    return '<button class="' + (STATE.tab === t[0] ? 'on' : '') + '" onclick="go(\'' + t[0] + '\')"><span>' + t[1] + '</span>' + t[2] + '</button>';
+  }).join('');
+}
+function setMain(html) { $('main').innerHTML = html; }
+function spinner() { setMain('<div class="spin">Loading…</div>'); }
+function failed(e) {
+  if (!S) return renderLogin();
+  setMain('<div class="spin">Could not load. Check your internet.<br><br><span class="small">' + esc(e && e.message) +
+    '</span><br><br><button class="btn light" onclick="render()">Try again</button></div>');
+}
+function go(tab) { STATE.tab = tab; STATE.view = tab; STATE.arg = null; render(); window.scrollTo(0, 0); }
+function open2(view, arg) { STATE.view = view; STATE.arg = arg; render(); window.scrollTo(0, 0); }
+function goBack() {
+  if (STATE.view === 'statement' && STATE.arg && STATE.arg.from === 'ledgers') open2('ledgers');
+  else go(STATE.tab);
+}
+function signOut() { S = null; saveSession(); STATE.members = null; URLS = {}; STATE.tab = STATE.view = 'home'; render(); }
+function confirmLogout() { if (confirm('Log out of Thikana 81?')) signOut(); }
+
+async function render() {
+  nav();
+  if (!S) return renderLogin();
+  try {
+    if (STATE.view === 'home') return await renderHome();
+    if (STATE.view === 'ledgers') return await renderLedgers();
+    if (STATE.view === 'statement') return await renderStatement(STATE.arg);
+    if (STATE.view === 'notices') return await renderNotices();
+    if (STATE.view === 'chat') return await renderChat();
+    if (STATE.view === 'more') return await renderMore();
+  } catch (e) { failed(e); }
+}
+
+async function members() {
+  if (!STATE.members) STATE.members = await get('members', 'select=*&order=display_name');
+  return STATE.members;
+}
+async function myName() {
+  if (isAdmin()) return ADMIN_NAME;
+  var id = myId(), ms_ = await members();
+  for (var i = 0; i < ms_.length; i++) if (ms_[i].id === id) return ms_[i].display_name;
+  return null;
+}
+
+// ===================================================================== sign in
+var LOGIN = { mustChange: false, forgot: null };
+function renderLogin() {
+  header('Welcome', { color: '#385C42' });
+  var last = ''; try { last = localStorage.getItem('last_user_name') || ''; } catch (e) {}
+  var h = '<img class="hero" src="../assets/assets/welcome.png" alt="" onerror="this.style.display=\'none\'">';
+  if (LOGIN.forgot) {
+    h += '<div class="sec" style="padding-left:8px">Forgot Password<div class="line"></div></div><div class="card">';
+    if (!LOGIN.forgot.sent) {
+      h += '<p>We will email a reset code to the address on file for <b>' + esc(LOGIN.forgot.user) + '</b>.</p>' +
+           '<div id="lerr" class="err"></div><button class="btn" id="lbtn" onclick="forgotSend()">Send code</button> ' +
+           '<button class="link" onclick="LOGIN.forgot=null;render()">Back</button>';
+    } else {
+      h += '<p class="ok">Code sent to ' + esc(LOGIN.forgot.sent) + '. Check your email (and spam).</p>' +
+           '<label class="f"><input type="text" id="fcode" placeholder="Code from the email" inputmode="numeric" autocomplete="one-time-code"></label>' +
+           '<label class="f"><input type="password" id="fpw" placeholder="New password (at least 4 characters)"></label>' +
+           '<div id="lerr" class="err"></div><button class="btn" id="lbtn" onclick="forgotVerify()">Set new password</button> ' +
+           '<button class="link" onclick="LOGIN.forgot=null;render()">Cancel</button>';
+    }
+    h += '</div>';
+  } else {
+    h += '<div class="sec" style="padding-left:8px">Member Sign in<div class="line"></div></div><div class="card">' +
+      '<label class="f"><input type="text" id="lu" placeholder="User name" autocapitalize="words" autocorrect="off" value="' + esc(last) + '"></label>' +
+      '<label class="f"><input type="password" id="lp" placeholder="Password"></label>' +
+      (LOGIN.mustChange ? '<label class="f"><input type="password" id="lnp" placeholder="Choose a new password"></label>' : '') +
+      '<div id="lerr" class="err"></div>' +
+      '<div class="row" style="align-items:center"><button class="btn" id="lbtn" onclick="doLogin()">Continue</button>' +
+      '<button class="link" onclick="startForgot()">Forgot Password?</button></div></div>';
+  }
+  h += '<p class="small" style="margin:12px 4px">Thikana 81 is a peaceful getaway shared among friends and family - lush with trees, ' +
+    'plants and flowers, with a man-made canal running beside the pathway. Built by eight school-life friends, this portal keeps ' +
+    'the group\'s accounts open and up to date for everyone who visits.</p>' +
+    '<div class="card"><div class="b" style="color:#A9812E">★ Google reviews</div>' +
+    '<div class="small">Plot 596 &amp; 597, Road 4, Krishibid West View, Birulia, Savar, Dhaka</div>' +
+    '<a href="https://www.google.com/maps/place/?q=place_id:ChIJ84n1fBfBVTcRBsZkr8wjLiA" target="_blank">View on Google Maps</a></div>' +
+    '<p class="small center">Thikana 81 Lite — for older iPhones</p>';
+  setMain(h);
+}
+function lerr(m) { var e = $('lerr'); if (e) e.textContent = m || ''; }
+function busy(on) { var b = $('lbtn'); if (b) b.disabled = on; }
+async function doLogin() {
+  var u = $('lu').value.trim(), p = $('lp').value.trim(), np = $('lnp') ? $('lnp').value.trim() : '';
+  if (!u || !p) return lerr('Enter your user name and password.');
+  busy(true); lerr('');
+  try {
+    var body = { action: 'login', username: u, password: p };
+    if (np) body.new_password = np;
+    var r = await callAuth(body);
+    if (!r.ok) {
+      if (r.must_change && !LOGIN.mustChange) { LOGIN.mustChange = true; renderLogin(); $('lu').value = u; $('lp').value = p; }
+      return lerr(r.error || 'Sign in failed.');
+    }
+    var j = await http('POST', '/auth/v1/token?grant_type=password', { email: r.email, password: np || p });
+    setSession(j);
+    try { localStorage.setItem('last_user_name', u); } catch (e) {}
+    LOGIN.mustChange = false;
+    go('home');
+  } catch (e) { lerr(e.message); } finally { busy(false); }
+}
+function startForgot() {
+  var u = $('lu').value.trim();
+  if (!u) return lerr('Type your user name first, then tap "Forgot Password?".');
+  LOGIN.forgot = { user: u, sent: null }; renderLogin();
+}
+async function forgotSend() {
+  busy(true); lerr('');
+  try {
+    var r = await callAuth({ action: 'forgot_request', username: LOGIN.forgot.user });
+    if (!r.ok) return lerr(r.error);
+    LOGIN.forgot.sent = r.sent_to; renderLogin();
+  } finally { busy(false); }
+}
+async function forgotVerify() {
+  var c = $('fcode').value.trim(), p = $('fpw').value.trim();
+  if (!c || p.length < 4) return lerr('Enter the code and a new password (at least 4 characters).');
+  busy(true); lerr('');
+  try {
+    var r = await callAuth({ action: 'forgot_verify', username: LOGIN.forgot.user, code: c, new_password: p });
+    if (!r.ok) return lerr(r.error);
+    var u = LOGIN.forgot.user; LOGIN.forgot = null; renderLogin();
+    $('lu').value = u; $('lp').value = p; lerr('');
+    alert('Password changed. Tap Continue to sign in.');
+  } finally { busy(false); }
+}
+
+// ===================================================================== home + ledgers
+function bucket() { return { charge: 0, paid: 0 }; }
+function ledger(id, name) { return { id: id, name: name, msc: bucket(), dsc: bucket() }; }
+function L(l) { var c = l.msc.charge + l.dsc.charge, p = l.msc.paid + l.dsc.paid; return { charge: c, paid: p, dues: c - p }; }
+var LEDGER = null;
+async function loadLedgers() {
+  var res = await Promise.all([members(), get('member_transactions', 'select=member_id,tx_type,charged,payment'),
+    get('society_transactions', 'select=income,expense'), get('sync_status', 'select=*&limit=1')]);
+  var mem = res[0], tx = res[1], soc = res[2], sync = res[3];
+  var map = {}, names = {}, total = ledger(null, 'Total');
+  mem.forEach(function (m) { names[m.id] = m.display_name; if (!m.deleted) map[m.id] = ledger(m.id, m.display_name); });
+  tx.forEach(function (t) {
+    if (t.member_id == null) return;
+    var l = map[t.member_id] || (map[t.member_id] = ledger(t.member_id, names[t.member_id] || 'Member ' + t.member_id));
+    var dsc = String(t.tx_type || '').toUpperCase() === 'DSC';
+    [dsc ? l.dsc : l.msc, dsc ? total.dsc : total.msc].forEach(function (b) { b.charge += num(t.charged); b.paid += num(t.payment); });
+  });
+  var cash = 0; soc.forEach(function (r) { cash += num(r.income) - num(r.expense); });
+  var list = Object.keys(map).map(function (k) { return map[k]; });
+  list.sort(function (a, b) { return L(b).dues - L(a).dues; });
+  LEDGER = { list: list, total: total, cash: cash, lastSync: sync.length ? sync[0].last_sync : null };
+  return LEDGER;
+}
+function ledgerCard(l, isTotal, from, noTap) {
+  var t = L(l), pct = t.charge > 0 ? Math.max(0, Math.min(1, t.paid / t.charge)) : 0;
+  function sub(label, b) {
+    var due = b.charge - b.paid;
+    return '<div><div class="b small" style="color:#1E2A32">' + label + '</div>' +
+      '<div class="row"><span>Charge</span><span class="b">' + tk(b.charge) + '</span></div>' +
+      '<div class="row"><span>Paid</span><span class="b">' + tk(b.paid) + '</span></div>' +
+      '<div class="row"><span>Due</span><span class="b' + (due > 0 ? ' red' : '') + '">' + tk(due) + '</span></div></div>';
+  }
+  var tap = (!isTotal && !noTap && l.id != null) ? ' onclick="open2(\'statement\',{id:' + l.id + ',from:\'' + (from || '') + '\'})"' : '';
+  return '<div class="card' + (isTotal ? ' total' : '') + '"' + tap + '>' +
+    '<div class="row" style="align-items:center"><span class="b" style="font-size:16px">' + esc(l.name) + '</span>' +
+    (isTotal ? '' : '<span class="pill' + (t.dues <= 0 ? ' ok' : '') + '">' + (t.dues <= 0 ? 'Paid Full' : 'Due ' + tk(t.dues)) + '</span>') + '</div>' +
+    '<div class="cols">' + sub('MSC', l.msc) + sub('DSC', l.dsc) + '</div>' +
+    (isTotal ? '' : '<div class="bar"><div style="width:' + Math.round(pct * 100) + '%"></div></div>') +
+    (tap ? '<div class="small" style="text-align:right;margin-top:4px">Tap for full statement</div>' : '') + '</div>';
+}
+async function renderHome() {
+  header('Home', { middle: '<button class="icon" onclick="open2(\'notices\')" title="Notices">🔔</button>' });
+  spinner();
+  var d = await loadLedgers(), tot = L(d.total), me = myId();
+  var mine = d.list.filter(function (l) { return l.id === me; });
+  function stat(k, v, cls) { return '<div class="card"><div class="k">' + k + '</div><div class="v ' + (cls || '') + '">' + v + '</div></div>'; }
+  var h = '<div class="sec">Dashboard<div class="line"></div></div><div class="grid">' +
+    stat('Total Charged', tk(tot.charge)) + stat('Total Paid', tk(tot.paid), 'green') +
+    stat('Outstanding Dues', tk(tot.dues), 'red') + stat('Cash Balance', tkSigned(d.cash)) + '</div>' +
+    '<div class="sec">Ledger<div class="line"></div><button class="icon" onclick="open2(\'ledgers\')" title="All members">👥</button></div>' +
+    ledgerCard(d.total, true);
+  if (isAdmin()) h += '<p class="small">Signed in as the Admin (' + ADMIN_NAME + '). Tap 👥 to see every member\'s ledger.</p>';
+  else if (mine.length) h += ledgerCard(mine[0], false, 'home');
+  else h += '<p class="small">Your own ledger will show here once your member record is synced.</p>';
+  h += '<p class="center"><button class="btn light" onclick="open2(\'ledgers\')">👥 See other members\' ledgers</button></p>' +
+    '<p class="small center">' + (d.lastSync ? 'Data last updated from the office PC: ' + fdate(d.lastSync, true) : 'Not synced yet') + '</p>';
+  setMain(h);
+}
+async function renderLedgers() {
+  header('Ledger', { back: true }); spinner();
+  var d = LEDGER || await loadLedgers();
+  setMain(ledgerCard(d.total, true) + d.list.map(function (l) { return ledgerCard(l, false, 'ledgers'); }).join(''));
+}
+async function renderStatement(arg) {
+  var d = LEDGER || await loadLedgers();
+  var l = d.list.filter(function (x) { return x.id === arg.id; })[0] || ledger(arg.id, 'Member');
+  header(l.name + ' — Statement', { back: true }); spinner();
+  var tx = await get('member_transactions', 'select=*&member_id=eq.' + arg.id + '&order=tx_date.desc,id.desc');
+  var att = {};
+  if (tx.length) {
+    var a = await get('attachments', 'select=*&owner_table=eq.MemberTransactions&owner_id=in.(' + tx.map(function (t) { return t.id; }).join(',') + ')');
+    a.forEach(function (r) { (att[r.owner_id] = att[r.owner_id] || []).push(r); });
+  }
+  var h = ledgerCard(l, false, '', true);
+  if (!tx.length) h += '<p class="center small">No transactions yet.</p>';
+  h += '<div class="list">' + tx.map(function (r) {
+    var files = att[r.id] || [];
+    return '<div><div class="row"><span class="b">' + esc(r.tx_type || 'Transaction') + '</span><span>' +
+      (num(r.charged) ? 'Charged ' + tk(r.charged) : '') + '</span></div>' +
+      '<div class="row"><span class="small">' + fdate(r.tx_date) + '</span>' +
+      (num(r.payment) ? '<span class="green">Paid ' + tk(r.payment) + '</span>' : '<span></span>') + '</div>' +
+      (r.description ? '<div class="small">' + esc(r.description) + '</div>' : '') +
+      files.map(function (f) {
+        return '<button class="link" onclick="openFile(\'Voucher_Bill_Receipt\',\'' + esc(f.stored_name) + '\')">📎 ' +
+          esc(f.original_name || f.stored_name) + '</button>';
+      }).join('') + '</div>';
+  }).join('') + '</div>';
+  setMain(h);
+}
+async function renderNotices() {
+  header('Notices', { back: true }); spinner();
+  var rows = await get('notices', 'select=*&order=pinned.desc,created_at.desc');
+  if (!rows.length) return setMain('<p class="center small">No notices.</p>');
+  setMain(rows.map(function (x) {
+    return '<details class="card"><summary><div class="b">' + (x.pinned ? '📌 ' : '📢 ') + esc(x.subject) + '</div>' +
+      '<div class="small">' + esc(x.posted_by_member_name) + ' · ' + fdate(x.created_at) + ' — tap to read</div></summary>' +
+      '<div class="hr"></div><div class="msg">' + esc(x.description) + '</div></details>';
+  }).join(''));
+}
+
+// ===================================================================== group chat
+var CHAT = { open: {}, data: null, extraFor: null };
+async function loadChat() {
+  var res = await Promise.all([members(), myName(),
+    get('chat_reactions', 'select=target_type,target_id,emoji,member_name'),
+    get('app_actions', 'select=*&applied_at=is.null&chat_id=is.null&order=id'),
+    get('chat_messages', 'select=*&order=posted_at.desc&limit=300'),
+    get('chat_comments', 'select=*&order=posted_at'),
+    get('pending_messages', 'select=*&target=eq.group&applied_at=is.null')]);
+  var mem = res[0], me = res[1], mirror = res[2], acts = res[3];
+  var photos = {}; mem.forEach(function (m) { photos[m.display_name] = m.member_photo_stored_name; });
+  // effective reactions = synced ones + phone toggles not yet synced
+  var eff = mirror.slice();
+  acts.filter(function (a) { return a.kind === 'react'; }).forEach(function (a) {
+    for (var i = 0; i < eff.length; i++) {
+      var r = eff[i];
+      if (r.target_type === a.target_type && r.target_id === a.target_id && r.emoji === a.emoji && r.member_name === a.member_name) { eff.splice(i, 1); return; }
+    }
+    eff.push({ target_type: a.target_type, target_id: a.target_id, emoji: a.emoji, member_name: a.member_name });
+  });
+  function lastAct(kind, id) { var o = null; acts.forEach(function (a) { if (a.kind === kind && a.target_id === id) o = a; }); return o; }
+  var comments = res[5];
+  var posts = res[4].filter(function (p) { return !lastAct('delete_post', p.id); }).map(function (p) {
+    var q = {}; for (var k in p) q[k] = p[k];
+    var pin = lastAct('pin_post', q.id); if (pin) q.pinned = pin.flag === true;
+    var ed = lastAct('edit_post', q.id); if (ed) q.message_text = ed.text_value;
+    var act = ms(q.posted_at);
+    var cs = comments.filter(function (c) { return c.post_id === q.id && !lastAct('delete_comment', c.id); }).map(function (c) {
+      var e = lastAct('edit_comment', c.id), x = {}; for (var k2 in c) x[k2] = c[k2];
+      if (e) x.comment_text = e.text_value; if (ms(c.posted_at) > act) act = ms(c.posted_at); return x;
+    });
+    acts.filter(function (a) { return a.kind === 'comment' && a.target_id === q.id; }).forEach(function (a) {
+      cs.push({ id: null, member_name: a.member_name, posted_at: a.created_at, comment_text: a.text_value,
+        attachment_stored_name: a.attachment_stored_name, attachment_original_name: a.attachment_original_name,
+        attachment_kind: a.attachment_kind, _pending: true });
+    });
+    q._comments = cs; q._activity = act; return q;
+  });
+  posts.sort(function (a, b) {
+    var pa = a.pinned ? 1 : 0, pb = b.pinned ? 1 : 0;
+    return pa !== pb ? pb - pa : b._activity - a._activity;
+  });
+  var pending = res[6].sort(function (a, b) { return ms(b.posted_at) - ms(a.posted_at); });
+  // signed links for avatars and pictures
+  var avatarNames = [], media = [];
+  function photoOf(n) { return photos[n === ADMIN_NAME ? ADMIN_PHOTO_MEMBER : n]; }
+  function addMedia(x) { if (x.attachment_stored_name && x.attachment_kind !== 'video') media.push(x.attachment_stored_name); }
+  pending.concat(posts).forEach(function (p) {
+    avatarNames.push(photoOf(p.member_name)); addMedia(p);
+    (p._comments || []).forEach(function (c) { avatarNames.push(photoOf(c.member_name)); addMedia(c); });
+  });
+  await Promise.all([signMany('MemberPhoto', avatarNames), signMany('ChatMedia', media)]);
+  CHAT.data = { me: me, posts: posts, pending: pending, reactions: eff, photoOf: photoOf };
+  return CHAT.data;
+}
+function avatar(name) {
+  var u = fileUrl('MemberPhoto', CHAT.data.photoOf(name));
+  return u ? '<span class="av" style="background-image:url(\'' + esc(u) + '\')"></span>' : '<span class="av">' + initials(name) + '</span>';
+}
+function nameLine(name, when, extra) {
+  return '<div class="who">' + avatar(name) + '<div class="nm"><span class="b">' + esc(name) + '</span>' +
+    '<span class="small">' + fdate(when, true) + '</span>' + (extra || '') + '</div></div>';
+}
+function mediaHtml(x) {
+  if (!x.attachment_stored_name) return '';
+  if (x.attachment_kind === 'video') {
+    return '<button class="link" onclick="openFile(\'ChatMedia\',\'' + esc(x.attachment_stored_name) + '\')">▶ Play video' +
+      (x.attachment_original_name ? ': ' + esc(x.attachment_original_name) : '') + '</button>';
+  }
+  var u = fileUrl('ChatMedia', x.attachment_stored_name);
+  return u ? '<a href="' + esc(u) + '" target="_blank"><img class="pic" src="' + esc(u) + '" alt=""></a>'
+           : '<div class="small">Photo not available yet (appears after the next PC sync).</div>';
+}
+function reactRow(type, id) {
+  var d = CHAT.data, count = {}, mine = {};
+  d.reactions.forEach(function (r) {
+    if (r.target_type === type && r.target_id === id) { count[r.emoji] = (count[r.emoji] || 0) + 1; if (r.member_name === d.me) mine[r.emoji] = 1; }
+  });
+  var shown = QUICK.slice();
+  Object.keys(count).forEach(function (e) { if (shown.indexOf(e) < 0) shown.push(e); });
+  function b(e) {
+    return '<button class="re' + (mine[e] ? ' mine' : '') + '" onclick="react(\'' + type + '\',' + id + ',\'' + e + '\')">' +
+      e + (count[e] ? ' ' + count[e] : '') + '</button>';
+  }
+  var key = type + id, h = '<div class="reacts">' + shown.map(b).join('') +
+    '<button class="re" onclick="CHAT.extraFor=CHAT.extraFor===\'' + key + '\'?null:\'' + key + '\';drawChat()"><b>+</b></button>';
+  if (CHAT.extraFor === key) h += '<div>' + EXTRA.filter(function (e) { return shown.indexOf(e) < 0; }).map(b).join('') + '</div>';
+  return h + '</div>';
+}
+function composer(id, hint, sendFn) {
+  return '<div class="composer"><textarea id="t_' + id + '" rows="2" placeholder="' + esc(hint) + '"></textarea>' +
+    '<div class="acts"><span class="attach btn light">📷 Photo<input type="file" accept="image/*" id="f_' + id + '" ' +
+    'onchange="var f=this.files[0];$(\'n_' + id + '\').textContent=f?f.name:\'\'"></span>' +
+    '<span class="fn" id="n_' + id + '"></span><button class="btn" id="b_' + id + '" onclick="' + sendFn + '">Send</button></div></div>';
+}
+function drawChat() {
+  var d = CHAT.data, h = composer('post', 'Say something to the group...', 'sendPost()');
+  d.pending.forEach(function (p) {
+    h += '<div class="card">' + nameLine(p.member_name, p.posted_at, ' <span class="wait">· Waiting for office sync</span>') +
+      (p.message_text ? '<div class="msg">' + esc(p.message_text) + '</div>' : '') + mediaHtml(p) + '</div>';
+  });
+  if (!d.posts.length && !d.pending.length) h += '<p class="center small">No messages yet — say hello!</p>';
+  d.posts.forEach(function (p) {
+    var cs = p._comments, open = !!CHAT.open[p.id];
+    h += '<div class="card' + (p.pinned ? ' pinned' : '') + '">' +
+      nameLine(p.member_name, p.posted_at, p.pinned ? ' 📌' : '') +
+      (p.message_text ? '<div class="msg">' + esc(p.message_text) + '</div>' : '') + mediaHtml(p) +
+      reactRow('Post', p.id) +
+      '<button class="link" onclick="CHAT.open[' + p.id + ']=!CHAT.open[' + p.id + '];drawChat()">💬 ' +
+      (cs.length ? cs.length + ' comment' + (cs.length > 1 ? 's' : '') : 'Comment') + (open ? ' ▲' : '') + '</button>';
+    var list = open ? cs.slice().reverse() : (cs.length ? [cs[cs.length - 1]] : []);
+    if (open) h += composer('c' + p.id, 'Message…', 'sendComment(' + p.id + ')');
+    list.forEach(function (c) {
+      h += '<div class="hr"></div><div class="cmt">' +
+        nameLine(c.member_name, c.posted_at, c._pending ? ' <span class="wait">· Waiting for office sync</span>' : '') +
+        (c.comment_text ? '<div class="msg">' + esc(c.comment_text) + '</div>' : '') + mediaHtml(c) +
+        (c._pending || c.id == null ? '' : reactRow('Comment', c.id)) + '</div>';
+    });
+    h += '</div>';
+  });
+  h += '<p class="small center">Edit, delete and pin are in the full app or on the desktop.</p>';
+  setMain(h);
+}
+async function renderChat() {
+  header('Chat', { middle: '<button class="icon" onclick="render()" title="Refresh">🔄</button>' });
+  spinner(); await loadChat(); drawChat();
+}
+async function uploadPhoto(file) {
+  if (file.size > 10 * 1024 * 1024) throw new Error('That photo is larger than 10 MB (the desktop limit).');
+  var name = file.name || 'photo.jpg', dot = name.lastIndexOf('.');
+  var base = (dot > 0 ? name.substring(0, dot) : name).replace(/[^A-Za-z0-9_\-]/g, '_') || 'media';
+  var ext = dot > 0 ? name.substring(dot).toLowerCase().replace(/[^a-z0-9.]/g, '') : '.jpg';
+  var rnd = ('00000000' + Math.floor(Math.random() * 0xffffffff).toString(16)).slice(-8);
+  var stored = base + '_' + rnd + ext;
+  await api('POST', '/storage/v1/object/' + BUCKET + '/ChatMedia/' + encodeURIComponent(stored), file,
+    { 'Content-Type': file.type || 'image/jpeg', 'x-upsert': 'false' });
+  return { attachment_stored_name: stored, attachment_original_name: name, attachment_kind: 'image' };
+}
+async function whoPosts() {
+  var me = await myName();
+  if (!me) throw new Error('Your member record is not synced yet.');
+  return { member_id: isAdmin() ? null : myId(), member_name: me };
+}
+async function sendFrom(id, build) {
+  var t = $('t_' + id), f = $('f_' + id), b = $('b_' + id), text = t.value.trim(), file = f.files && f.files[0];
+  if (!text && !file) return;
+  b.disabled = true; b.textContent = 'Sending…';
+  try {
+    var row = await whoPosts();
+    if (file) { var up = await uploadPhoto(file); for (var k in up) row[k] = up[k]; }
+    await build(row, text);
+    await renderChat();
+  } catch (e) { toast('Could not send: ' + e.message); b.disabled = false; b.textContent = 'Send'; }
+}
+function sendPost() {
+  return sendFrom('post', function (row, text) { row.target = 'group'; row.message_text = text; return insert('pending_messages', row); });
+}
+function sendComment(postId) {
+  return sendFrom('c' + postId, function (row, text) {
+    row.kind = 'comment'; row.target_type = 'Post'; row.target_id = postId; row.text_value = text;
+    return insert('app_actions', row);
+  });
+}
+async function react(type, id, emoji) {
+  try {
+    var row = await whoPosts();
+    row.kind = 'react'; row.target_type = type; row.target_id = id; row.emoji = emoji;
+    await insert('app_actions', row);
+    // update on screen without reloading everything
+    var d = CHAT.data, found = -1;
+    for (var i = 0; i < d.reactions.length; i++) {
+      var r = d.reactions[i];
+      if (r.target_type === type && r.target_id === id && r.emoji === emoji && r.member_name === d.me) found = i;
+    }
+    if (found >= 0) d.reactions.splice(found, 1); else d.reactions.push({ target_type: type, target_id: id, emoji: emoji, member_name: d.me });
+    CHAT.extraFor = null; drawChat();
+  } catch (e) { toast('Could not update reaction: ' + e.message); }
+}
+
+// ===================================================================== more: call friend
+function intlDigits(phone) {
+  var p = String(phone || '').replace(/[^0-9+]/g, '');
+  if (p.charAt(0) === '+') return p.substring(1);
+  if (p.indexOf('00') === 0) return p.substring(2);
+  if (p.indexOf('880') === 0) return p;
+  if (p.charAt(0) === '0' && p.length === 11) return '88' + p;
+  if (p.charAt(0) === '1' && p.length === 10) return '880' + p;
+  return p;
+}
+var MORE_OPEN = {};
+async function renderMore() {
+  header('More', { middle: '<button class="btn maroon" onclick="confirmLogout()">Log out</button>' });
+  spinner();
+  var mem = await members(), me = myId();
+  var list = mem.filter(function (m) { return !m.deleted && m.active !== false && m.id !== me; });
+  await signMany('MemberPhoto', list.map(function (m) { return m.member_photo_stored_name; }));
+  var h = '<div class="sec">📞 Call Friend<div class="line"></div></div><div class="card list">';
+  if (!list.length) h += '<p class="small">No other members yet.</p>';
+  list.forEach(function (m) {
+    var phone = String(m.phone || '').trim(), dg = intlDigits(phone), u = fileUrl('MemberPhoto', m.member_photo_stored_name);
+    h += '<div><div class="friend">' +
+      (u ? '<span class="av" style="background-image:url(\'' + esc(u) + '\')"></span>' : '<span class="av">' + initials(m.display_name) + '</span>') +
+      '<div class="nm"><div class="b">' + esc(m.display_name) + '</div><div class="small">' + (phone ? esc(phone) : 'No phone number on file') + '</div></div>' +
+      (phone ? '<a class="icon" href="tel:+' + dg + '" style="text-decoration:none">📞</a>' +
+        '<a class="icon" href="https://wa.me/' + dg + '" target="_blank" style="text-decoration:none;color:#25D366;font-weight:700">W</a>' +
+        '<button class="icon" onclick="MORE_OPEN[' + m.id + ']=!MORE_OPEN[' + m.id + '];renderMore()">⋮</button>' : '') + '</div>';
+    if (phone && MORE_OPEN[m.id]) {
+      h += '<div class="opts"><a href="tel:+' + dg + '">📞 Call</a><a href="sms:+' + dg + '">✉️ SMS</a>' +
+        '<a href="https://wa.me/' + dg + '" target="_blank">WhatsApp</a><a href="viber://chat?number=%2B' + dg + '">Viber</a>' +
+        '<a href="https://t.me/+' + dg + '" target="_blank">Telegram</a></div>';
+    }
+    h += '</div>';
+  });
+  h += '</div><p class="small center">You are using Thikana 81 Lite (for older iPhones).</p>';
+  setMain(h);
+}
+
+render();
+</script>
+</body>
+</html>
